@@ -2,6 +2,12 @@ from base import BaseParser
 from urllib.parse import urlparse,parse_qs
 
 class OpacParser(BaseParser):
+    def __init__(self, url):
+        super().__init__(url)
+        self.scheme = None
+        self.destination = []  
+        self.options = {}
+
     def parse(self):
         p=urlparse(self.url)
         self.scheme=p.scheme

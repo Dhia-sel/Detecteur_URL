@@ -18,7 +18,6 @@ Projet-Detecteur-Url/
 │   │   ├── embedded.py
 │   │   ├── nested.py
 │   │   ├── opaque.py
-│   │   └── relative.py
 │
 │   ├── Analysis/
 │   │   ├── address_analysis.py
