@@ -12,6 +12,15 @@ class NestedParser(BaseParser):
                 'link',
                 'src'}
     
+    def __init__(self, url):
+        super().__init__(url)
+        self.type = ""  
+        self.inner = None       
+        self.wrapper = {        
+            "schéma": None,
+            "hote": None,
+            "clef": None}
+    
     def IsPrefixBased(self):
         if ":" not in self.url:
             return False
@@ -19,13 +28,6 @@ class NestedParser(BaseParser):
         if self.url.startswith(scheme + "://"):
             return False
         return True
-    
-    def IsParamBased(self):
-        parsed = urlparse(self.url)
-        if not parsed.query:
-            return False
-        keys = parse_qs(parsed.query).keys()
-        return bool(self.NESTED_KEYS.intersection(keys))
     
     def GetPrefix(self):
         ch=self.url.split(":", 1)
@@ -37,31 +39,38 @@ class NestedParser(BaseParser):
         }
 
     def GetParam(self):
-        clef="none"
-        self.inner=None
         parsed = urlparse(self.url)
         params = parse_qs(parsed.query)
-        for key in self.NESTED_KEYS:
-            if key in params:
-                clef=key
-                self.inner=params[key][0]
-                break
-        if not self.inner and params:
-            clef=list(params.keys())[0]
-            self.inner=params[clef][0]
-        self.wrapper={
-            "schéma":parsed.scheme,
-            "hote":parsed.netloc,
-            "clef":clef
+        found_key = "aucun"
+        extracted_url = None
+        found_keys = self.NESTED_KEYS.intersection(params.keys())
+        if found_keys:
+            found_key = list(found_keys)[0]
+            extracted_url = params[found_key][0]
+        elif params:
+            for k, v in params.items():
+                val = v[0]
+                if val.startswith(('http:', 'https:', 'www.')):
+                    found_key = k
+                    extracted_url = val
+                    break
+        self.inner = extracted_url
+        self.wrapper = {
+            "schéma": parsed.scheme,
+            "hote": parsed.netloc,
+            "clef": found_key
         }
 
     def parse(self):
         if self.IsPrefixBased():
             self.type="par préfixe"
             self.GetPrefix()
-        else :
-            self.type="par paramétre"
+        elif '?' in self.url:
             self.GetParam()
+            if self.inner:
+                self.type = "par paramétre"
+            else:
+                self.type = "Aucun"
 
     def data(self):
         self.parse()

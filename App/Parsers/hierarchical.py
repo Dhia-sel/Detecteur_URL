@@ -1,7 +1,10 @@
 from base import BaseParser
-from urllib import urlparse
+from urllib.parse import urlparse
 
 class HierarchicalParser(BaseParser):
+    def __init__(self, url):
+        super().__init__(url)
+        
     def parse(self):
         p=urlparse(self.url)
         return p
