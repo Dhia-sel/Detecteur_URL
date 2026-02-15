@@ -51,7 +51,7 @@ class Lexical_H_Analyzer:
                 kw_count += 1
 
         entropy = self.entropy(self.host)
-        digit_count = sum(c.isdigit() for c in self.full_url)
+        digit_count = -sum(c.isdigit() for c in self.full_url)
         digit_ratio = digit_count/url_len if url_len>0 else 0
 
         return {
