@@ -1,5 +1,5 @@
 import math
-class Lexical_N_Analyzer:
+class lexical_N_analyzer:
     keys= [
         "login", "signin", "log-in", "sign-in", "password", "credential", 
         "unlock", "verify", "verification", "secure", "security", "auth", 
