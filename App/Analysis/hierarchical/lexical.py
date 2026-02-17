@@ -1,5 +1,4 @@
 import math
-
 class Lexical_H_Analyzer:
 
     sus_keys = [

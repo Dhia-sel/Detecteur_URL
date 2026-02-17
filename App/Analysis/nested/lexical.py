@@ -31,8 +31,8 @@ class lexical_N_analyzer:
     def analyze(self):
         low= self.inner_url.lower()
         kw_count=0
-        for kw in self.keys:
-            if kw in low:
+        for key in self.keys:
+            if key in low:
                 kw_count += 1
         bad_ext=0
         for ext in self.sus_extentions:

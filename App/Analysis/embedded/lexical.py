@@ -1,5 +1,5 @@
 import math
-class Lexical_Data_Analyzer:
+class lexical_E_analyzer:
 
     keys= [
         "login", "sign-in", "password", "credential", "unlock", "confirm", 
@@ -53,7 +53,7 @@ class Lexical_Data_Analyzer:
         symbol_ratio = code_chars / len(text_lower) if len(text_lower) > 0 else 0
 
         return {
-            "semantic_score": semantic_score, 
+            "semantic_score":semantic_score, 
             "code_score": code_score,      
             "tag_count": tag_count,     
             "pwd_field": has_password_field, 
