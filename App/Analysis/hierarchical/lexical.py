@@ -1,5 +1,5 @@
 import math
-class Lexical_H_Analyzer:
+class lexical_H_analyzer:
 
     sus_keys = [
         "login", "signin", "log-in", "sign-in", "verify", "verification", 
@@ -20,12 +20,12 @@ class Lexical_H_Analyzer:
         "free", "gift", "prize", "winner", "offer", "promo", 
         "urgent", "limited", "bonus", "cash"
     ]
-    SPECIAL_CHARS = ['@','!','#','$','%','^','&','*','(',')','+','=','{','}','[',']','|','\\',';','"','\'','<','>',',','?','~','`','_']
+    special= ['@','!','#','$','%','^','&','*','(',')','+','=','{','}','[',']','|','\\',';','"','\'','<','>',',','?','~','`','_']
 
     def __init__(self, parsed_data):
-        self.host = parsed_data.get("auteur", {}).get("hote", "")
+        self.host = parsed_data.get("auteur", {}).get("le hote", "")
         self.path = parsed_data.get("chemin", "")
-        self.query = str(parsed_data.get("requête", ""))
+        self.query = str(parsed_data.get("requete", ""))
         self.full_url = f"{self.host}{self.path}{self.query}"
 
     def entropy(self, text):
@@ -35,7 +35,7 @@ class Lexical_H_Analyzer:
 
     def analyze(self):
         url_len = len(self.full_url)
-        num_special_chars = sum(self.full_url.count(char) for char in self.SPECIAL_CHARS)
+        num_special_chars = sum(self.full_url.count(char) for char in self.special)
         dot_count = self.full_url.count('.')
         dash_count = self.full_url.count('-')
 
@@ -50,7 +50,7 @@ class Lexical_H_Analyzer:
                 kw_count += 1
 
         entropy = self.entropy(self.host)
-        digit_count = -sum(c.isdigit() for c in self.full_url)
+        digit_count = sum(c.isdigit() for c in self.full_url)
         digit_ratio = digit_count/url_len if url_len>0 else 0
 
         return {

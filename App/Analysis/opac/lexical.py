@@ -1,5 +1,5 @@
 import math
-class Lexical_Opaque_Analyzer:
+class lexical_O_analyzer:
     
     keys = [
         "urgent", "immediate", "now", "24h", "expire", "suspended", "blocked", 

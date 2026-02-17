@@ -1,11 +1,11 @@
 import ipaddress
 
-class Address_H_Analyzer:
+class address_H_analyzer:
     SUSPICIOUS_TLDS = {'zip', 'xyz', 'top', 'gq', 'tk', 'ml', 'cf', 'work', 'loan'}
 
     def __init__(self, parsed_data):
         self.data = parsed_data
-        self.host = parsed_data.get("auteur", {}).get("hote", "")
+        self.host = parsed_data.get("auteur", {}).get("le hote", "")
         self.port = parsed_data.get("auteur", {}).get("port")
         self.scheme = parsed_data.get("schéma", "")
 

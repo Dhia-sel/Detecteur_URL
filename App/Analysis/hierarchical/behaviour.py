@@ -5,8 +5,8 @@ class behaviour_H_analyzer:
         self.data = parsed_data
         self.user = parsed_data.get("auteur", {}).get("utilisateur")
         self.password = parsed_data.get("auteur", {}).get("mot de passe")
-        self.host = parsed_data.get("auteur", {}).get("hote", "")
-        self.query = str(parsed_data.get("requête", ""))
+        self.host = parsed_data.get("auteur", {}).get("le hote", "")
+        self.query = str(parsed_data.get("requete", ""))
         self.path = parsed_data.get("chemin", "")
 
     def analyze(self):

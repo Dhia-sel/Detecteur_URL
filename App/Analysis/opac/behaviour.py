@@ -1,4 +1,4 @@
-class Behaviour_Opaque_Analyzer:
+class behaviour_O_analyzer:
 
     risky = [
         "mailto", "tel", "sms", "mms", "fax", "news", "nntp",     
