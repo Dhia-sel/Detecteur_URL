@@ -1,4 +1,4 @@
-from base import BaseParser
+from .base import BaseParser
 from urllib.parse import urlparse,parse_qs
 
 class OpacParser(BaseParser):
