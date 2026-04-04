@@ -10,6 +10,7 @@ Projet-Detecteur-Url/
 │   │   ├── classifier.py
 │   │   ├── normalizer.py
 │   │   ├── constants.py
+│   │   ├── pipeline.py
 │   │   └── __pycache__/
 │
 │   ├── Parsers/
