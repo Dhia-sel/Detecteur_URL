@@ -1,7 +1,7 @@
 import ipaddress
 
 class address_H_analyzer:
-    SUSPICIOUS_TLDS = {'zip', 'xyz', 'top', 'gq', 'tk', 'ml', 'cf', 'work', 'loan'}
+    SUSPICIOUS_TLDS = {'zip', 'xyz', 'top', 'gq', 'tk', 'ml', 'cf', 'work', 'loan', 'club', 'online', 'site', 'space', 'tech', 'store', 'icu', 'bid', 'win', 'download', 'review', 'pw', 'ga'}
 
     def __init__(self, parsed_data):
         self.data = parsed_data

@@ -2,15 +2,15 @@ Projet-Detecteur-Url/
 │
 ├── README.md
 ├── requirements.txt
-├── .gitignore
 │
 ├── App/
 │   ├── main.py
 │
 │   ├── Core/
-│   │   ├── classifier.py        
+│   │   ├── classifier.py
 │   │   ├── normalizer.py
-│   │   └── constants.py
+│   │   ├── constants.py
+│   │   └── __pycache__/
 │
 │   ├── Parsers/
 │   │   ├── base.py
@@ -18,36 +18,43 @@ Projet-Detecteur-Url/
 │   │   ├── embedded.py
 │   │   ├── nested.py
 │   │   ├── opaque.py
+│   │   └── __pycache__/
 │
 │   ├── Analysis/
-│   │   ├── address_analysis.py
-│   │   ├── lexical_analysis.py
-│   │   ├── behavioral_analysis.py
-│   │   └── risk_rules.py
+│   │   ├── rules.py
+│   │   ├── embedded/
+│   │   │   ├── behaviour.py
+│   │   │   ├── lexical.py
+│   │   │   └── __pycache__/
+│   │   ├── hierarchical/
+│   │   │   ├── address.py
+│   │   │   ├── behaviour.py
+│   │   │   ├── lexical.py
+│   │   │   └── __pycache__/
+│   │   ├── nested/
+│   │   │   ├── behaviour.py
+│   │   │   ├── lexical.py
+│   │   │   └── __pycache__/
+│   │   └── opac/
+│   │       ├── behaviour.py
+│   │       ├── lexical.py
+│   │       └── __pycache__/
 │
-│   ├── ML/
-│   │   ├── feature_builder.py   
-│   │   ├── model.py        
-│   │   ├── predict.py        
-│   │   └── datasets/
-│   │       └── phishing_urls.csv
-│
-│   ├── Explain/
+│   ├── Explaining/
 │   │   ├── formatter.py
 │   │   └── messages.py
 │
+│   ├── MachineLearning/
 │   └── Utils/
-│       ├── ip_utils.py
-│       ├── domain_utils.py
-│       └── string_utils.py
 │
-├── Tests/
-│   ├── test_classifier.py
-│   ├── test_parsers.py
-│   ├── test_ml.py
-│   └── test_pipeline.py
+├── Docs/
+│   └── architecture.md
 │
-└── Docs/
+└── Tests/
+    ├── embedded_test.py
+    ├── hierarchical_test.py
+    ├── nested_test.py
+    └── opac_test.py
     ├── architecture.md
     ├── ml_design.md
     └── examples.md
