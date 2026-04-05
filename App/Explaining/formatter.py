@@ -7,32 +7,41 @@ FEATURE_RISK = {
     "abnormal_port": "high_bad",
     "sus_tld": "high_bad",
     "is_ssl": "high_good",
-    "entropy": "high_bad",
+    "len": "high_bad",
+    "dots": "high_bad",
+    "dashes": "high_bad",
     "special_chars": "high_bad",
-    "sus_keywords": "high_bad",
-    "url_len": "high_bad",
-    "dot_count": "high_bad",
-    "dash_count": "high_bad",
     "subdomain_depth": "high_bad",
+    "keywords": "high_bad",
+    "entropy": "high_bad",
+    "digitRatio": "high_bad",
     "has_redirection": "high_bad",
     "has_obfuscation": "high_bad",
     "is_shortened": "high_bad",
     "multi_subdomain": "high_bad",
     "double_slash": "high_bad",
-    "kw_count": "high_bad",
-    "bad_ext": "high_bad",
-    "ratio": "high_bad",
+    "semantic_score": "high_bad",
+    "code_score": "high_bad",
+    "tag_count": "high_bad",
+    "pwd_field": "high_bad",
+    "symbol_ratio": "high_bad",
+    "risky_mime": "high_bad",
+    "base64": "high_bad",
+    "hidden_html": "high_bad",
+    "is_unknown": "high_bad",
+    "small_payload": "high_bad",
+    "bad_extention": "high_bad",
+    "len_ratio": "high_bad",
     "percent_count": "high_bad",
     "equal_count": "high_bad",
-    "keywords": "high_bad",
-    "money_signs": "high_bad",
-    "dest_lens": "high_bad",
-    "payload_len": "high_bad",
     "trusted_wrapper": "high_good",
     "downgrade": "high_bad",
     "is_external": "high_bad",
     "key_standard": "high_good",
     "target_digit": "high_bad",
+    "money_signs": "high_bad",
+    "dest_len": "high_bad",
+    "payload_len": "high_bad",
     "is_risky": "high_bad",
     "dest_count": "high_bad",
     "multi_target": "high_bad",
@@ -101,7 +110,7 @@ class HierarchicalFormatter(BaseFormatter):
 class EmbeddedFormatter(BaseFormatter):
     def __init__(self, parsed_data, analyses):
         super().__init__(parsed_data, analyses)
-        self.data_type = parsed_data.get("type", "")
+        self.data_type = parsed_data.get("type_média", "")
 
     def format_report(self):
         data, comments = self.format_analyzers()
@@ -117,7 +126,7 @@ class EmbeddedFormatter(BaseFormatter):
 class NestedFormatter(BaseFormatter):
     def __init__(self, parsed_data, analyses):
         super().__init__(parsed_data, analyses)
-        self.nested_urls = parsed_data.get("urls_imbriquées", [])
+        self.inner_url = parsed_data.get("vrai url", "")
 
     def format_report(self):
         data, comments = self.format_analyzers()
@@ -127,7 +136,7 @@ class NestedFormatter(BaseFormatter):
             "data": data,
             "comments": comments,
             "recommendation": self.get_recommendation(),
-            "specific_insights": f"Contains {len(self.nested_urls)} nested URLs"
+            "specific_insights": f"Nested URL: {self.inner_url[:50]}..." if self.inner_url else "Nested URL detected"
         }
 
 class OpaqueFormatter(BaseFormatter):
