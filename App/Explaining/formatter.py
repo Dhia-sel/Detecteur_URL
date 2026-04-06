@@ -147,7 +147,7 @@ class OpaqueFormatter(BaseFormatter):
     def format_report(self):
         data, comments = self.format_analyzers()
         return {
-            "url_type": "opaque",
+            "url_type": "opac",
             "parsed_url": self.parsed,
             "data": data,
             "comments": comments,

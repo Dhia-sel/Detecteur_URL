@@ -31,9 +31,9 @@ class behaviour_E_analyzer:
     "application/vnd.ms-word.document.macroenabled.12"}
 
     def __init__(self, parsed_data):
-        self.mime = parsed_data.get("type_média", "").lower()
-        self.is_base64 = parsed_data.get("basée_64", False)
-        self.total_data_len = len(parsed_data.get("données_totales", ""))
+        self.mime = parsed_data.get("type_media", "").lower()
+        self.is_base64 = parsed_data.get("base64", False)
+        self.total_data_len = len(parsed_data.get("donnees_totales", ""))
 
     def analyze(self):
         risky_mime = 0

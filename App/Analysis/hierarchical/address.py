@@ -7,7 +7,7 @@ class address_H_analyzer:
         self.data = parsed_data
         self.host = parsed_data.get("auteur", {}).get("le hote", "")
         self.port = parsed_data.get("auteur", {}).get("port")
-        self.scheme = parsed_data.get("schéma", "")
+        self.scheme = parsed_data.get("schema", "")
 
     def analyze(self):
         is_ip = False

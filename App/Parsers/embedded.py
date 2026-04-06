@@ -37,12 +37,12 @@ class EmbeddedParser(BaseParser):
     def data(self):
         self.parse()
         return {
-            "schéma":"data",
-            "type_média":self.mime,
-            "longueur_données":len(self.info),
-            "données":self.info[:20]+"...",
-            "données_totales":self.info,
-            "données_décodés":self.decoded,
-            "basée_64":self.is64,
+            "schema":"data",
+            "type_media":self.mime,
+            "longueur_donnees":len(self.info),
+            "donnees":self.info[:20]+"...",
+            "donnees_totales":self.info,
+            "donnees_decodes":self.decoded,
+            "base64":self.is64,
         }
         

@@ -12,7 +12,7 @@ class HierarchicalParser(BaseParser):
     def data(self):
         p=self.parse()
         return {
-            "schéma": p.scheme,
+            "schema": p.scheme,
             "auteur":{
                 "utilisateur":p.username,
                 "mot de passe":p.password,

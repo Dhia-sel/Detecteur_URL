@@ -24,7 +24,7 @@ class lexical_E_analyzer:
     ]
 
     def __init__(self, parsed_data):
-        self.content = parsed_data.get("données_décodés", "")
+        self.content = parsed_data.get("donnees_decodes", "")
         if self.content is None:
             self.content = ""
 
