@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URLShield — Cyber Threat Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-a">
+
+<!-- BG EFFECTS -->
+<canvas id="bgCanvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="logo-hex">U</div>
+    URLShield
+  </a>
+  <div class="nav-center">
+    <button class="nav-link active" onclick="showSec('scan',this)">Scan</button>
+    <button class="nav-link" onclick="showSec('about',this)">About</button>
+  </div>
+  <div class="theme-switcher">
+    <span class="theme-label">THEME</span>
+    <div class="theme-dot td-a active" onclick="setTheme('a',this)" title="Red"></div>
+    <div class="theme-dot td-b" onclick="setTheme('b',this)" title="Cyan"></div>
+    <div class="theme-dot td-c" onclick="setTheme('c',this)" title="Gold"></div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══ SCAN SECTION ══ -->
+<section id="sec-scan" class="section active">
+  <!-- HERO -->
+  <div class="hero-wrap">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-dot"></div>
+      Threat Intelligence Engine — Active
+    </div>
+    <h1>Detect <span class="grad">Malicious</span><br>URLs Instantly</h1>
+    <p class="hero-sub">Hybrid analysis combining lexical heuristics, behavioural pattern recognition and machine learning to expose phishing, malware and embedded threats.</p>
+    <div class="stat-row">
+      <div class="stat-chip"><span class="stat-chip-icon">⬡</span><span>URL Types</span><span class="stat-chip-val">×4</span></div>
+      <div class="stat-chip"><span class="stat-chip-icon">⚡</span><span>Analysis</span><span class="stat-chip-val">Real-time</span></div>
+      <div class="stat-chip"><span class="stat-chip-icon">🧠</span><span>ML Model</span><span class="stat-chip-val">Active</span></div>
+      <div class="stat-chip"><span class="stat-chip-icon">🔒</span><span>RFC</span><span class="stat-chip-val">3986</span></div>
+    </div>
+  </div>
+
+  <!-- SCAN BOX -->
+  <div class="scan-wrap">
+    <div class="scan-box">
+      <div class="scan-top">
+        <div class="scan-icon-wrap">
+          <svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><path d="m11 11 3 3"/></svg>
+        </div>
+        <input class="scan-input" id="urlInput" type="text"
+          placeholder="https://  ·  data:text/html;base64,  ·  mailto:"
+          onkeydown="if(event.key==='Enter')runScan()">
+        <button class="scan-btn" id="scanBtn" onclick="runScan()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="7" cy="7" r="5"/><path d="m11 11 3 3"/></svg>
+          Analyze
+        </button>
+      </div>
+      <div class="scan-bottom">
+        <div class="hints">
+          <span class="hint" onclick="setEx('data')">data: URI</span>
+          <span class="hint" onclick="setEx('phish')">Phishing</span>
+          <span class="hint" onclick="setEx('ip')">IP URL</span>
+          <span class="hint" onclick="setEx('safe')">Safe URL</span>
+        </div>
+        <span class="scan-meta" id="scanMeta">0 scans</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="progWrap">
+      <div class="prog-steps" id="progSteps"></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="res-header">
+      <div class="res-url">Scanning: <span id="resUrl"></span></div>
+      <div class="verdict-pill" id="verdictPill"></div>
+    </div>
+
+    <div class="rec-box" id="recBox">
+      <div class="rec-emoji" id="recEmoji"></div>
+      <div class="rec-body">
+        <h4 id="recTitle"></h4>
+        <p id="recMsg"></p>
+      </div>
+    </div>
+
+    <div class="insight-strip" id="insightStrip" style="display:none">
+      <div class="insight-tag">INSIGHT</div>
+      <div class="insight-val" id="insightVal"></div>
+    </div>
+
+    <div class="dash">
+      <!-- LEFT -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- ML SCORE DISK -->
+        <div class="card" id="cardDisk">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon ci-accent">⚡</div>
+              ML Threat Score
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="score-disk-wrap">
+              <div class="disk-outer">
+                <div class="disk-pulse" id="pulse1" style="border-color:var(--accent);display:none"></div>
+                <div class="disk-pulse" id="pulse2" style="border-color:var(--accent);display:none;animation-delay:0.8s"></div>
+                <div class="disk-pulse" id="pulse3" style="border-color:var(--accent);display:none;animation-delay:1.6s"></div>
+                <svg class="disk-svg" viewBox="0 0 170 170" width="170" height="170">
+                  <g id="ticks"></g>
+                  <circle class="disk-track" cx="85" cy="85" r="65"/>
+                  <circle class="disk-glow-ring" id="diskGlow" cx="85" cy="85" r="65"/>
+                  <circle class="disk-prog" id="diskProg" cx="85" cy="85" r="65"/>
+                </svg>
+                <div class="disk-inner">
+                  <div class="disk-pct" id="diskPct">0<span class="disk-pct-sym">%</span></div>
+                  <div class="disk-sublabel">THREAT SCORE</div>
+                </div>
+              </div>
+              <div class="risk-label" id="riskLabel">—</div>
+              <div class="risk-type" id="riskType">—</div>
+            </div>
+            <div class="sub-scores" id="subScores"></div>
+          </div>
+        </div>
+
+        <!-- BEHAVIOUR FLAGS -->
+        <div class="card" id="cardFlags">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon ci-amber">🚩</div>
+              Behaviour Flags
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="flags-grid" id="flagsGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- URL DECOMPOSITION -->
+        <div class="card" id="cardKV">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon ci-blue">🔍</div>
+              URL Decomposition
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="kv-list" id="kvList"></div>
+          </div>
+        </div>
+
+        <!-- ANALYSIS COMMENTS -->
+        <div class="card" id="cardCmt">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon ci-green">💬</div>
+              Analysis Notes
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="cmt-list" id="cmtList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty" id="emptyState">
+    <div class="empty-icon">🛡️</div>
+    <div class="empty-title">Ready to scan</div>
+    <div class="empty-desc">Enter any URL above — HTTP, HTTPS, data URIs, nested or opaque schemes supported.</div>
+  </div>
+</section>
+
+<!-- ══ ABOUT SECTION ══ -->
+<section id="sec-about" class="section">
+  <div class="about-hero-grid">
+    <div>
+      <div class="hero-eyebrow" style="margin-bottom:20px;display:inline-flex">
+        <div class="hero-eyebrow-dot"></div>Open Source
+      </div>
+      <div class="about-title">Built for<br><span>Security</span><br>Researchers</div>
+      <p class="about-desc">URLShield is a hybrid URL threat detection engine combining rule-based lexical analysis, behavioural heuristics, and machine learning to identify phishing attempts, malware distribution, and malicious data URIs. Designed around RFC 3986.</p>
+    </div>
+    <div class="code-card">
+      <div><span class="ck">class</span> <span class="cf">Pipeline</span>:</div>
+      <div>  <span class="ck">def</span> <span class="cf">run</span>(self, url: str):</div>
+      <div>    url_type = classifier.<span class="cf">detect</span>(url)</div>
+      <div>    parsed   = parsers[url_type].<span class="cf">parse</span>(url)</div>
+      <div>    lex      = analyzers.<span class="cf">lexical</span>(parsed)</div>
+      <div>    beh      = analyzers.<span class="cf">behaviour</span>(parsed)</div>
+      <div>    <span class="ck">return</span> formatter.<span class="cf">build</span>({</div>
+      <div>      <span class="cs">"lexical"</span>: lex,</div>
+      <div>      <span class="cs">"behaviour"</span>: beh,</div>
+      <div>    })</div>
+      <div class="cc"># Author: Dhia-sel · FastAPI backend</div>
+    </div>
+  </div>
+
+  <div class="sec-label">Processing Pipeline</div>
+  <div class="pipe-cards">
+    <div class="pipe-card"><div class="pc-num">01</div><div class="pc-name">Classifier</div><div class="pc-desc">Detects URL type: hierarchical, embedded, nested, opaque</div></div>
+    <div class="pipe-card"><div class="pc-num">02</div><div class="pc-name">Parser</div><div class="pc-desc">Decomposes structure per RFC 3986 per type</div></div>
+    <div class="pipe-card"><div class="pc-num">03</div><div class="pc-name">Lexical</div><div class="pc-desc">Entropy, semantics, code detection, symbol density</div></div>
+    <div class="pipe-card"><div class="pc-num">04</div><div class="pc-name">Behaviour</div><div class="pc-desc">MIME, encoding, payload patterns, attack vectors</div></div>
+    <div class="pipe-card"><div class="pc-num">05</div><div class="pc-name">ML Model</div><div class="pc-desc">Supervised classification with feature scoring</div></div>
+    <div class="pipe-card"><div class="pc-num">06</div><div class="pc-name">Formatter</div><div class="pc-desc">Structured report with scores & recommendations</div></div>
+  </div>
+
+  <div class="sec-label">Supported URL Types</div>
+  <div class="type-cards">
+    <div class="type-card"><div class="type-badge tb-b">HIERARCHICAL</div><div class="tc-name">Standard URLs</div><div class="tc-ex">https://domain.com/path?q=val</div></div>
+    <div class="type-card"><div class="type-badge tb-r">EMBEDDED</div><div class="tc-name">Data URIs</div><div class="tc-ex">data:text/html;base64,...</div></div>
+    <div class="type-card"><div class="type-badge tb-a">NESTED</div><div class="tc-name">URL-in-URL</div><div class="tc-ex">https://proxy.com?url=https://...</div></div>
+    <div class="type-card"><div class="type-badge tb-g">OPAQUE</div><div class="tc-name">Non-hierarchical</div><div class="tc-ex">mailto:user@domain.com</div></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="foot-l">URLShield — <span>Dhia-sel</span> — Cyber Threat Detection Engine</div>
+  <div class="foot-r">FastAPI · Python · RFC 3986 · In Development</div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
