@@ -41,7 +41,7 @@ class lexical_O_analyzer:
         money_signs = self.full_text.count("$") + self.full_text.count("€") + self.full_text.count("£")
         dest_lens=0
         if self.destinations and len(self.destinations)>0:
-            dest_lens= [len(k) for k in self.destinations]
+            dest_lens= max(len(k) for k in self.destinations)
         entropy = self._entropy(self.full_text)
         payload_len = len(self.options)
 

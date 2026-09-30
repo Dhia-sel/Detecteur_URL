@@ -41,7 +41,7 @@ class behaviour_E_analyzer:
             if self.mime.startswith(risk):
                 risky_mime = 1
                 break
-        unknown_mime = 1 if not self.mime else 0
+        unknown_mime = int(self.mime in {"", "inconnu"})
         is_b64 = 1 if self.is_base64 else 0
         hidden_html = 1 if risky_mime and is_b64 else 0
         small_payload = 1 if self.total_data_len < 5000 else 0

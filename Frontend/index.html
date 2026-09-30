@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>URLShield — Cyber Threat Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20260930">
 </head>
 <body class="theme-a">
 
@@ -98,6 +101,7 @@
       <div class="rec-body">
         <h4 id="recTitle"></h4>
         <p id="recMsg"></p>
+        <p id="pipelineRecommendation" class="pipeline-recommendation" hidden></p>
       </div>
     </div>
 
@@ -115,7 +119,7 @@
           <div class="card-head">
             <div class="card-title">
               <div class="card-icon ci-accent">⚡</div>
-              ML Threat Score
+              <span id="scoreTitle">ML Threat Score</span>
             </div>
           </div>
           <div class="card-body">
@@ -132,7 +136,7 @@
                 </svg>
                 <div class="disk-inner">
                   <div class="disk-pct" id="diskPct">0<span class="disk-pct-sym">%</span></div>
-                  <div class="disk-sublabel">THREAT SCORE</div>
+                  <div class="disk-sublabel" id="diskSublabel">THREAT SCORE</div>
                 </div>
               </div>
               <div class="risk-label" id="riskLabel">—</div>
@@ -247,6 +251,7 @@
   <div class="foot-r">FastAPI · Python · RFC 3986 · In Development</div>
 </footer>
 
-<script src="js/app.js"></script>
+<script src="js/api.js?v=20260930-all-score-2"></script>
+<script src="js/app.js?v=20260930-recommendation-2"></script>
 </body>
 </html>

@@ -1,0 +1,127 @@
+2026-09-29T17:25:03+01:00 [training] Préparation du modèle ML.
+2026-09-29T17:25:03+01:00 [downloading_dataset] Téléchargement du dataset PhiUSIIL depuis UCI.
+2026-09-29T17:25:07+01:00 [error] L'entraînement ML a échoué.
+2026-09-29T17:26:31+01:00 [training] Préparation du modèle ML.
+2026-09-29T17:26:31+01:00 [downloading_dataset] Téléchargement du dataset PhiUSIIL depuis UCI.
+2026-09-29T17:26:36+01:00 [error] L'entraînement ML a échoué.
+2026-09-29T17:26:44+01:00 [training] Préparation du modèle ML.
+2026-09-29T17:26:44+01:00 [downloading_dataset] Téléchargement du dataset PhiUSIIL depuis UCI.
+2026-09-29T17:26:54+01:00 [error] L'entraînement ML a échoué.
+2026-09-29T17:27:31+01:00 [training] Préparation du modèle ML.
+2026-09-29T17:27:31+01:00 [downloading_dataset] Téléchargement du dataset PhiUSIIL depuis UCI.
+2026-09-29T17:27:36+01:00 [error] L'entraînement ML a échoué. Détail: Error reading data csv file for "PhiUSIIL Phishing URL (Website)" dataset (id=967).
+2026-09-29T17:32:08+01:00 [training] Préparation du modèle ML.
+2026-09-29T17:32:08+01:00 [downloading_dataset] Téléchargement du dataset PhiUSIIL depuis UCI.
+2026-09-29T17:32:10+01:00 [error] L'entraînement ML a échoué. Détail: Error reading data csv file for "PhiUSIIL Phishing URL (Website)" dataset (id=967).
+Traceback (most recent call last):
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1319, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1338, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1384, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1333, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1093, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1037, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1479, in connect
+    self.sock = self._context.wrap_socket(self.sock,
+                ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+                                          server_hostname=server_hostname)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sock=sock,
+        ^^^^^^^^^^
+    ...<5 lines>...
+        session=session
+        ^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\ssl.py", line 1076, in _create
+    self.do_handshake()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\ssl.py", line 1372, in do_handshake
+    self._sslobj.do_handshake()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1028)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\ucimlrepo\fetch.py", line 97, in fetch_ucirepo
+    df = pd.read_csv(data_url)
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 872, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 300, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1643, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1907, in _make_engine
+    self.handles = get_handle(
+                   ~~~~~~~~~~^
+        f,
+        ^^
+    ...<6 lines>...
+        storage_options=self.options.get("storage_options", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\common.py", line 776, in get_handle
+    ioargs = _get_filepath_or_buffer(
+        path_or_buf,
+    ...<3 lines>...
+        storage_options=storage_options,
+    )
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\common.py", line 405, in _get_filepath_or_buffer
+    with urlopen(req_info) as req:
+         ~~~~~~~^^^^^^^^^^
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\pandas\io\common.py", line 282, in urlopen
+    return urllib.request.urlopen(*args, **kwargs)  # noqa: TID251
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 489, in open
+    response = self._open(req, data)
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 466, in _call_chain
+    result = func(*args)
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1367, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1322, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1028)>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\API\routes\scan.py", line 38, in _train_ml_model
+    phishing_model.train(progress_callback=_set_ml_state)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\ML\phishing_model.py", line 108, in train
+    df = load_dataset(progress_callback)
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\ML\phishing_model.py", line 91, in load_dataset
+    df = fetch_ucirepo(id=967).data.original
+         ~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\Dhia\OneDrive\Bureau\Projet-Detecteur-Url\.venv\Lib\site-packages\ucimlrepo\fetch.py", line 99, in fetch_ucirepo
+    raise DatasetNotFoundError('Error reading data csv file for "{}" dataset (id={}).'.format(name, id))
+ucimlrepo.fetch.DatasetNotFoundError: Error reading data csv file for "PhiUSIIL Phishing URL (Website)" dataset (id=967).
+2026-09-29T18:27:22+01:00 [ready] Modèle entraîné avec le CSV PhiUSIIL officiel local: 235370 URLs uniques; phishing_model.joblib créé.

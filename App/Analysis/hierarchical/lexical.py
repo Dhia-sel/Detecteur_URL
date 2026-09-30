@@ -1,4 +1,5 @@
 import math
+import re
 class lexical_H_analyzer:
 
     sus_keys = [
@@ -10,10 +11,6 @@ class lexical_H_analyzer:
         "paypal", "visa", "mastercard", "amex", "wallet", "crypto", 
         "binance", "coinbase", "blockchain", "fund",
 
-        "apple", "icloud", "google", "gmail", "microsoft", "outlook", 
-        "office365", "amazon", "netflix", "facebook", "instagram", 
-        "whatsapp", "linkedin", "dropbox", "adobe",
-        
         "support", "service", "help", "client", "admin", "cs", 
         "dhl", "fedex", "usps", "delivery", "tracking",
         
@@ -39,14 +36,13 @@ class lexical_H_analyzer:
         dot_count = self.full_url.count('.')
         dash_count = self.full_url.count('-')
 
-        subdomain_depth = 0
-        if self.host and not self.host.replace('.', '').isdigit(): 
-             subdomain_depth = self.host.count('.')
+        labels = self.host.rstrip('.').split('.') if self.host else []
+        subdomain_depth = max(len(labels) - 2, 0)
 
         kw_count = 0
-        lower_url = self.full_url.lower()
+        tokens = set(re.findall(r"[a-z0-9]+", self.full_url.lower()))
         for kw in self.sus_keys:
-            if kw in lower_url:
+            if kw in tokens:
                 kw_count += 1
 
         entropy = self.entropy(self.host)

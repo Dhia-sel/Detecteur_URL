@@ -49,6 +49,56 @@ FEATURE_RISK = {
     "risky_payload": "high_bad"
 }
 
+FEATURE_THRESHOLDS = {
+    "len": 75,
+    "dots": 3,
+    "dashes": 2,
+    "special_chars": 3,
+    "subdomain_depth": 2,
+    "entropy": 3.5,
+    "digitRatio": 0.1,
+    "len_ratio": 3.0,
+    "dest_len": 40,
+    "payload_len": 3,
+    "percent_count": 2,
+    "equal_count": 2,
+    "dest_count": 1,
+}
+
+
+def _is_hazardous(feature, value):
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    if FEATURE_RISK.get(feature, "high_bad") == "high_good":
+        return value == 0
+    return value > FEATURE_THRESHOLDS.get(feature, 0)
+
+
+def count_risk_signals(analyses):
+    return sum(
+        _is_hazardous(feature, value)
+        for values in analyses.values()
+        for feature, value in values.items()
+    )
+
+
+def calculate_rule_risk_score(analyses):
+    evaluated_count = sum(
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and feature in FEATURE_MESSAGES
+        for values in analyses.values()
+        for feature, value in values.items()
+    )
+    signal_count = count_risk_signals(analyses)
+    score_percent = round(signal_count / evaluated_count * 100, 1) if evaluated_count else 0.0
+    return {
+        "risk_signal_count": signal_count,
+        "risk_signal_total": evaluated_count,
+        "rule_score_percent": score_percent,
+    }
+
+
 class BaseFormatter:
     def __init__(self, parsed_data, analyses):
         self.parsed = parsed_data
@@ -59,11 +109,16 @@ class BaseFormatter:
         comments = []
         for sub_key, sub_value in analyzer_values.items():
             data[sub_key] = sub_value
+            if sub_value is None:
+                continue
             if sub_key in FEATURE_MESSAGES:
-                risk_type = FEATURE_RISK.get(sub_key, "high_bad")
-                if (risk_type == "high_bad" and sub_value > 0) or (risk_type == "high_good" and sub_value == 0):
+                if sub_key == "is_unknown" and analyzer_values.get("risky_mime", 0):
+                    continue
+                if sub_key == "risky_mime" and sub_value == 0 and "is_unknown" in analyzer_values:
+                    continue
+                if _is_hazardous(sub_key, sub_value):
                     comments.append(FEATURE_MESSAGES[sub_key]['hazardous'])
-                elif (risk_type == "high_bad" and sub_value == 0) or (risk_type == "high_good" and sub_value > 0):
+                else:
                     comments.append(FEATURE_MESSAGES[sub_key]['safe'])
         return data, comments
 
@@ -77,12 +132,7 @@ class BaseFormatter:
         return data, comments
 
     def get_recommendation(self):
-        hazardous_count = 0
-        for analyzer, values in self.analyses.items():
-            for sub_key, sub_value in values.items():
-                risk_type = FEATURE_RISK.get(sub_key, "high_bad")
-                if (risk_type == "high_bad" and sub_value > 0) or (risk_type == "high_good" and sub_value == 0):
-                    hazardous_count += 1
+        hazardous_count = count_risk_signals(self.analyses)
         if hazardous_count > 5:
             return RISK_MESSAGES["high"]
         elif hazardous_count > 2:

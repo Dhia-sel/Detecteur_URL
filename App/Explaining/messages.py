@@ -82,15 +82,15 @@ FEATURE_MESSAGES = {
     },
     # Lexical Analyzer - Embedded
     "semantic_score": {
-        "hazardous": "Contains several suspicious semantic terms (login, verify, etc.).",
+        "hazardous": "Contains suspicious semantic terms (login, verify, etc.).",
         "safe": "Contains no suspicious terms."
     },
     "code_score": {
-        "hazardous": "Contains signs of malicious code indicators.",
-        "safe": "No harmful code indicators detected."
+        "hazardous": "Contains suspicious code-execution tokens.",
+        "safe": "No suspicious code-execution tokens detected."
     },
     "tag_count": {
-        "hazardous": "Contains dangerous HTML/script tags like <script>, <iframe>, <form>.",
+        "hazardous": "Contains one or more monitored HTML elements.",
         "safe": "No dangerous tags detected."
     },
     "pwd_field": {
@@ -98,13 +98,13 @@ FEATURE_MESSAGES = {
         "safe": "No password fields detected."
     },
     "symbol_ratio": {
-        "hazardous": "Has high ratio of code symbols, indicating obfuscated code.",
-        "safe": "Has normal symbol distribution."
+        "hazardous": "Contains a high proportion of code-related symbols.",
+        "safe": "Contains a low proportion of code-related symbols."
     },
     # Behaviour Analyzer - Embedded
     "risky_mime": {
         "hazardous": "Uses a risky MIME type (JavaScript, HTML, executable, etc.).",
-        "safe": "Uses a safe MIME type."
+        "safe": "No known risky MIME type was detected."
     },
     "base64": {
         "hazardous": "Content is base64 encoded, common in phishing attacks.",
@@ -115,12 +115,12 @@ FEATURE_MESSAGES = {
         "safe": "No hidden HTML detected."
     },
     "is_unknown": {
-        "hazardous": "Uses an unknown or suspicious MIME type.",
-        "safe": "Uses a recognized MIME type."
+        "hazardous": "MIME type is missing or could not be parsed.",
+        "safe": "A MIME type is available for classification."
     },
     "small_payload": {
-        "hazardous": "Small payload size typical of simple phishing pages.",
-        "safe": "Payload size is normal or large."
+        "hazardous": "Embedded payload is small.",
+        "safe": "Embedded payload is not small."
     },
     # Lexical Analyzer - Nested
     "bad_extention": {
@@ -128,8 +128,8 @@ FEATURE_MESSAGES = {
         "safe": "No suspicious file extensions detected."
     },
     "len_ratio": {
-        "hazardous": "Nested URL is disproportionately longer than the wrapper.",
-        "safe": "URL lengths are proportional."
+        "hazardous": "Nested URL is unusually long relative to the wrapper host.",
+        "safe": "Nested URL is not unusually long relative to the wrapper host."
     },
     "percent_count": {
         "hazardous": "Contains percent-encoded characters, potentially hiding content.",
@@ -170,12 +170,12 @@ FEATURE_MESSAGES = {
         "safe": "Destination structure is normal."
     },
     "payload_len": {
-        "hazardous": "Payload is large, possibly containing malicious data.",
-        "safe": "Payload size is reasonable."
+        "hazardous": "Contains many query parameters.",
+        "safe": "Contains few query parameters."
     },
     # Behaviour Analyzer - Opaque
     "is_risky": {
-        "hazardous": "Uses a risky scheme (bitcoin, mailto, javascript, etc.).",
+        "hazardous": "Uses a potentially risky scheme (bitcoin, javascript, data, etc.).",
         "safe": "Uses a standard scheme."
     },
     "dest_count": {
@@ -187,11 +187,11 @@ FEATURE_MESSAGES = {
         "safe": "Targets a single recipient."
     },
     "has_options": {
-        "hazardous": "Contains options/parameters, often used for phishing attacks.",
-        "safe": "No suspicious parameters found."
+        "hazardous": "Contains URI options or parameters.",
+        "safe": "No URI options or parameters detected."
     },
     "risky_payload": {
-        "hazardous": "Combines risky scheme with options/payload, highly suspicious.",
+        "hazardous": "Combines a potentially risky scheme with URI options.",
         "safe": "No risky payload combination detected."
     }
 }

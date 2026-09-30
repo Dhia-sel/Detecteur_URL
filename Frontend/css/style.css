@@ -340,6 +340,7 @@ h1 .grad {
 .rec-emoji{font-size:26px;flex-shrink:0;line-height:1}
 .rec-body h4{font-size:15px;font-weight:700;margin-bottom:5px}
 .rec-body p{font-size:13px;color:var(--text2);line-height:1.6}
+.rec-body .pipeline-recommendation{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);color:var(--text);font-weight:600}
 .rec-high .rec-body h4{color:var(--red-base)}
 .rec-med .rec-body h4{color:var(--amber)}
 .rec-low .rec-body h4{color:var(--green)}

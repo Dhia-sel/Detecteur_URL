@@ -30,7 +30,7 @@ class address_H_analyzer:
 
         return {
             "is_ip": int(is_ip),
-            "is_private": int(is_private),
+            "is_private": int(is_private) if is_ip else None,
             "abnormal_port": int(abnormal_port),
             "sus_tld": int(is_sus_tld),
             "is_ssl": int(is_ssl)

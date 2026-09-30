@@ -36,6 +36,10 @@ initParticles();
 window.addEventListener('resize', initParticles);
 
 function drawBg() {
+  if (!Number.isFinite(W) || !Number.isFinite(H) || W <= 0 || H <= 0) {
+    requestAnimationFrame(drawBg);
+    return;
+  }
   ctx.clearRect(0, 0, W, H);
 
   // ── Particles ──
@@ -310,10 +314,12 @@ function setEx(k) {
 const STEPS = ['Classify', 'Parse', 'Lexical Scan', 'Behaviour Scan', 'ML Score', 'Format'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let scanCount = 0;
+let activeScanId = 0;
 
 async function runScan() {
   const url = document.getElementById('urlInput').value.trim();
   if (!url) { document.getElementById('urlInput').focus(); return; }
+  const scanId = ++activeScanId;
 
   // Reset
   document.getElementById('results').style.display = 'none';
@@ -321,6 +327,9 @@ async function runScan() {
   document.getElementById('emptyState').style.display = 'none';
   ['cardDisk','cardFlags','cardKV','cardCmt'].forEach(id => {
     document.getElementById(id).classList.remove('visible');
+  });
+  ['pulse1','pulse2','pulse3'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
   });
 
   const btn = document.getElementById('scanBtn');
@@ -347,11 +356,47 @@ async function runScan() {
   btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="7" cy="7" r="5"/><path d="m11 11 3 3"/></svg> Analyze';
   btn.classList.remove('loading');
 
-  scanCount++;
-  document.getElementById('scanMeta').textContent = scanCount + ' scan' + (scanCount > 1 ? 's' : '');
+  try {
+    const report = await scanUrl(url);
+    scanCount++;
+    document.getElementById('scanMeta').textContent = scanCount + ' scan' + (scanCount > 1 ? 's' : '');
+    renderReport(report, url);
+    if (['idle', 'training', 'downloading_dataset', 'loading_dataset', 'dataset_ready'].includes(report.ml_status)) {
+      monitorMlScore(url, report, scanId);
+    }
+  } catch (error) {
+    window.alert('Analysis failed: ' + error.message);
+  }
+}
 
-  const report = analyzeURL(url);
-  renderReport(report, url);
+async function monitorMlScore(url, report, scanId) {
+  while (scanId === activeScanId) {
+    await sleep(2500);
+    if (scanId !== activeScanId) return;
+    try {
+      const result = await getMlScore(url);
+      report.ml_status = result.status;
+      report.ml_message = result.message || '';
+      report.ml_error = result.error || null;
+      if (result.status === 'ready' && Number.isFinite(result.score)) {
+        report._score = result.score;
+        report.ml_verdict = result.verdict;
+        applyMlPresentation(report, true);
+        return;
+      }
+      if (result.status === 'error' || result.status === 'unsupported') {
+        applyMlPresentation(report, false);
+        return;
+      }
+      applyMlPresentation(report, false);
+    } catch (error) {
+      report.ml_status = 'error';
+      report.ml_error = error.message;
+      report.ml_message = 'ML prediction unavailable.';
+      applyMlPresentation(report, false);
+      return;
+    }
+  }
 }
 
 // ─── Analysis ───
@@ -478,24 +523,12 @@ function analyzeURL(rawUrl) {
 //  RENDER
 // ═══════════════════════════════════════════════════
 function renderReport(r, rawUrl) {
-  const s = r._score;
-  const isH = s >= 70, isM = s >= 40 && s < 70;
-  const scoreColor = isH ? 'var(--red-base)' : isM ? 'var(--amber)' : 'var(--green)';
+  const s = Number.isFinite(r._score) ? Math.max(0, Math.min(100, r._score)) : 0;
 
   // URL label
   document.getElementById('resUrl').textContent = rawUrl.length > 55 ? rawUrl.substring(0, 55) + '...' : rawUrl;
 
-  // Verdict pill
-  const vp = document.getElementById('verdictPill');
-  vp.className = 'verdict-pill ' + (isH ? 'vp-high' : isM ? 'vp-med' : 'vp-low');
-  vp.innerHTML = `<span class="vp-dot"></span>${isH ? '⚠ HIGH RISK' : isM ? '⚡ MODERATE' : '✓ SAFE'}`;
-
-  // Recommendation
-  const rb = document.getElementById('recBox');
-  rb.className = 'rec-box ' + (isH ? 'rec-high' : isM ? 'rec-med' : 'rec-low');
-  document.getElementById('recEmoji').textContent = isH ? '🚨' : isM ? '⚠️' : '✅';
-  document.getElementById('recTitle').textContent = isH ? 'High Risk Detected' : isM ? 'Moderate Risk' : 'Low Risk';
-  document.getElementById('recMsg').textContent = r.recommendation;
+  applyMlPresentation(r, false);
 
   // Insight
   if (r.specific_insights) {
@@ -515,39 +548,6 @@ function renderReport(r, rawUrl) {
   cards.forEach((id, i) => {
     setTimeout(() => document.getElementById(id).classList.add('visible'), i * 120);
   });
-
-  // ── ML SCORE DISK ──
-  setTimeout(() => {
-    const circumference = 2 * Math.PI * 65; // 408.41
-    const offset = circumference - (s / 100 * circumference);
-    const prog = document.getElementById('diskProg');
-    prog.style.stroke = scoreColor;
-    document.getElementById('diskGlow').style.stroke = scoreColor;
-    document.getElementById('diskGlow').style.opacity = isH ? '0.08' : '0.05';
-    prog.style.strokeDashoffset = offset;
-
-    // Animate number
-    const numEl = document.getElementById('diskPct');
-    numEl.style.color = scoreColor;
-    let cur = 0;
-    const iv = setInterval(() => {
-      cur = Math.min(cur + 1, s);
-      numEl.innerHTML = cur + '<span class="disk-pct-sym">%</span>';
-      if (cur >= s) clearInterval(iv);
-    }, 1600 / Math.max(s, 1));
-
-    // Pulse rings for high risk
-    if (isH) {
-      ['pulse1', 'pulse2', 'pulse3'].forEach(id => {
-        document.getElementById(id).style.display = 'block';
-      });
-    }
-
-    // Risk label
-    document.getElementById('riskLabel').textContent = isH ? 'CRITICAL' : isM ? 'MODERATE' : 'LOW';
-    document.getElementById('riskLabel').style.color = scoreColor;
-    document.getElementById('riskType').textContent = 'Type: ' + r.url_type.replace(/_/g, ' ').toUpperCase();
-  }, 200);
 
   // Sub-score bars
   const l = r.data.lexical;
@@ -605,7 +605,7 @@ function renderReport(r, rawUrl) {
     ...(r.comments.behaviour || []).map(t => ({ t, src: 'BEH' }))
   ];
   const dangerKw = /dangerous|risky|phishing|obfusc|suspicious|base64|hidden|executable|IP address|injection/i;
-  const okKw = /no harmful|no suspicious|no password/i;
+  const okKw = /\b(no|does not|normal|reasonable|few|uses a domain name|uses a public IP address|uses standard web ports|uses a legitimate top-level domain|uses https\/ssl)\b/i;
   const cl = document.getElementById('cmtList');
   cl.innerHTML = allCmts.map((c, i) => {
     const type = okKw.test(c.t) ? 'ok' : dangerKw.test(c.t) ? 'danger' : 'warn';
@@ -624,3 +624,94 @@ function renderReport(r, rawUrl) {
   });
 
   res.scrollIntoView({ behavior: 'smooth', block: 'start' });}
+
+function formatMlProbability(score) {
+  if (score < 0.05) return '<0.1';
+  if (score >= 99.95) return '>99.9';
+  return score.toFixed(1);
+}
+
+function applyMlPresentation(report, animate) {
+  const pending = ['idle', 'training', 'downloading_dataset', 'loading_dataset', 'dataset_ready'].includes(report.ml_status);
+  const unsupported = report.ml_status === 'unsupported';
+  const failed = ['error', 'unavailable'].includes(report.ml_status);
+  document.getElementById('scoreTitle').textContent = unsupported ? 'Rule-based risk score' : 'ML Threat Score';
+  document.getElementById('diskSublabel').textContent = unsupported ? 'RULE SCORE' : 'THREAT SCORE';
+  const ruleLevel = report.recommendation && report.recommendation.startsWith('High risk detected!')
+    ? 'HIGH RISK'
+    : report.recommendation && report.recommendation.startsWith('Caution advised.')
+      ? 'MODERATE'
+      : 'LOW';
+  const signalCount = Number.isInteger(report.rule_signal_count) ? report.rule_signal_count : null;
+  const signalTotal = Number.isInteger(report.rule_signal_total) ? report.rule_signal_total : null;
+  const ruleScore = Number.isFinite(report.rule_score_percent)
+    ? Math.max(0, Math.min(100, report.rule_score_percent))
+    : null;
+  const ruleSignalNote = signalCount === null
+    ? 'This heuristic is not an ML probability.'
+    : `Rule-based risk score: ${ruleScore?.toFixed(1) ?? '—'}% (${signalCount}/${signalTotal ?? '—'} indicators triggered). This is not an ML probability.`;
+  const score = unsupported
+    ? ruleScore ?? 0
+    : Number.isFinite(report._score) ? Math.max(0, Math.min(100, report._score)) : 0;
+  const isHigh = unsupported ? ruleLevel === 'HIGH RISK' : !pending && !failed && score >= 70;
+  const isModerate = unsupported
+    ? ruleLevel === 'MODERATE'
+    : pending || failed || (score >= 40 && score < 70);
+  const color = isHigh ? 'var(--red-base)' : isModerate ? 'var(--amber)' : 'var(--green)';
+  const label = unsupported
+    ? `RULES · ${ruleLevel}`
+    : pending ? '⏳ ML TRAINING' : failed ? '⚠ ML UNAVAILABLE' : isHigh ? '⚠ HIGH RISK' : isModerate ? '⚡ MODERATE' : '✓ SAFE';
+  const pill = document.getElementById('verdictPill');
+  pill.className = 'verdict-pill ' + (isHigh ? 'vp-high' : isModerate ? 'vp-med' : 'vp-low');
+  pill.innerHTML = `<span class="vp-dot"></span>${label}`;
+
+  const recBox = document.getElementById('recBox');
+  recBox.className = 'rec-box ' + (isHigh ? 'rec-high' : isModerate ? 'rec-med' : 'rec-low');
+  document.getElementById('recEmoji').textContent = pending ? '⏳' : failed ? '⚠️' : isHigh ? '🚨' : isModerate ? '⚠️' : '✅';
+  document.getElementById('recTitle').textContent = unsupported
+    ? ruleLevel === 'HIGH RISK' ? 'High Risk Detected' : ruleLevel === 'MODERATE' ? 'Moderate Risk' : 'Low Risk'
+    : pending ? 'ML model is running' : failed ? 'ML prediction unavailable' : isHigh ? 'High Risk Detected' : isModerate ? 'Moderate Risk' : 'Low Risk';
+  document.getElementById('recMsg').textContent = pending
+    ? (report.ml_message || 'The model is preparing its dataset and training. The score will update automatically.')
+    : unsupported
+      ? ruleSignalNote
+    : failed
+      ? `${report.ml_error || report.ml_message || 'The rule-based analysis is available, but the ML score could not be calculated.'} See ML/ml_training.log for details.`
+      : `ML phishing probability: ${formatMlProbability(score)}% (${report.ml_verdict || 'prediction ready'}).`;
+  const pipelineRecommendation = document.getElementById('pipelineRecommendation');
+  pipelineRecommendation.hidden = !report.recommendation;
+  pipelineRecommendation.textContent = report.recommendation
+    ? `Pipeline recommendation: ${report.recommendation}`
+    : '';
+
+  const circumference = 2 * Math.PI * 65;
+  const progress = document.getElementById('diskProg');
+  progress.style.stroke = color;
+  progress.style.opacity = '1';
+  progress.style.strokeDashoffset = circumference - score / 100 * circumference;
+  document.getElementById('diskGlow').style.stroke = color;
+  document.getElementById('diskGlow').style.opacity = isHigh ? '0.08' : '0.05';
+  const number = document.getElementById('diskPct');
+  number.style.color = color;
+  if (failed) {
+    number.innerHTML = '—<span class="disk-pct-sym"></span>';
+  } else if (animate) {
+    const steps = Math.max(Math.ceil(score * 2), 1);
+    let step = 0;
+    const timer = setInterval(() => {
+      step += 1;
+      const current = score * step / steps;
+      number.innerHTML = formatMlProbability(current) + '<span class="disk-pct-sym">%</span>';
+      if (step >= steps) clearInterval(timer);
+    }, Math.min(16, 1600 / steps));
+  } else {
+    number.innerHTML = (pending ? '0' : formatMlProbability(score)) + '<span class="disk-pct-sym">%</span>';
+  }
+  ['pulse1', 'pulse2', 'pulse3'].forEach(id => {
+    document.getElementById(id).style.display = isHigh ? 'block' : 'none';
+  });
+  document.getElementById('riskLabel').textContent = unsupported
+    ? ruleLevel : pending ? 'TRAINING' : failed ? 'UNAVAILABLE' : isHigh ? 'CRITICAL' : isModerate ? 'MODERATE' : 'LOW';
+  document.getElementById('riskLabel').style.color = color;
+  document.getElementById('riskType').textContent = (unsupported ? 'RULE ANALYSIS · ' : 'ML SCORE · ') + report.url_type.replace(/_/g, ' ').toUpperCase();
+}
