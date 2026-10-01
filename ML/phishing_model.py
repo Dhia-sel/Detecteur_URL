@@ -1,4 +1,5 @@
 import math
+import ipaddress
 import re
 import sys
 from pathlib import Path
@@ -7,11 +8,14 @@ from urllib.parse import urlparse
 import joblib
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
+from App.Core.classifier import URLClassifier
 
 HERE = Path(__file__).resolve().parent
 MODEL_PATH = HERE / "phishing_model.joblib"
 DATA_PATH = HERE / "phiusiil.csv"
 FEATURE_VERSION = 1
+DATASET_VERSION = 2
+DATASET_DIR = HERE / "datasets"
 KEYWORDS = ("login", "signin", "verify", "secure", "account", "update", "bank",
             "confirm", "password", "wallet", "webscr", "paypal", "support")
 TRUSTED_DOMAINS = {
@@ -106,12 +110,70 @@ def load_dataset(progress_callback=None):
             progress_callback("downloading_dataset", "Téléchargement du dataset PhiUSIIL depuis UCI.")
         df = fetch_ucirepo(id=967).data.original
         df.to_csv(DATA_PATH, index=False)
-    if progress_callback:
-        progress_callback("dataset_ready", f"Dataset prêt : {len(df)} lignes récupérées.")
     df.columns = [c.lower() for c in df.columns]
-    df = df[["url", "label"]].dropna().drop_duplicates(subset="url")
-    df["phish"] = (df["label"] == 0).astype(int)
-    return df[["url", "phish"]].reset_index(drop=True)
+    datasets = [_prepare_labeled_urls(df, "url", "label", phishing_label=0, source="PhiUSIIL")]
+
+    optional_sources = [
+        (DATASET_DIR / "legitphish_v2.csv", "url", "classlabel", 0, "LegitPhish V2"),
+    ]
+    for path, url_column, label_column, phishing_label, source in optional_sources:
+        if not path.exists():
+            continue
+        if progress_callback:
+            progress_callback("loading_dataset", f"Chargement de {source}.")
+        source_df = pd.read_csv(path, usecols=lambda column: column.lower() in {url_column, label_column})
+        source_df.columns = [column.lower() for column in source_df.columns]
+        datasets.append(
+            _prepare_labeled_urls(source_df, url_column, label_column, phishing_label, source)
+        )
+
+    combined = pd.concat(datasets, ignore_index=True)
+    label_counts = combined.groupby("url")["phish"].nunique()
+    conflicting_urls = set(label_counts[label_counts > 1].index)
+    if conflicting_urls:
+        combined = combined[~combined["url"].isin(conflicting_urls)]
+    combined = combined.drop_duplicates(subset="url").reset_index(drop=True)
+    included_sources = sorted(combined["source"].unique().tolist())
+    if progress_callback:
+        progress_callback(
+            "dataset_ready",
+            f"Dataset prêt : {len(combined)} URLs HTTP(S) hiérarchiques uniques; "
+            f"sources: {', '.join(included_sources)}; "
+            f"{len(conflicting_urls)} URLs aux labels contradictoires exclues.",
+        )
+    result = combined[["url", "phish"]]
+    result.attrs["sources"] = included_sources
+    return result
+
+
+def _prepare_labeled_urls(dataframe, url_column, label_column, phishing_label, source):
+    source_df = dataframe[[url_column, label_column]].dropna().copy()
+    source_df.columns = ["url", "label"]
+    source_df["label"] = pd.to_numeric(source_df["label"], errors="coerce")
+    source_df = source_df.dropna(subset=["label"])
+    source_df = source_df[source_df["label"].isin({0, 1})]
+    source_df["url"] = source_df["url"].astype(str).str.strip().map(normalize)
+    source_df = source_df[source_df["url"].map(_is_hierarchical_web_url)]
+    source_df["phish"] = (source_df["label"] == phishing_label).astype(int)
+    source_df["source"] = source
+    return source_df[["url", "phish", "source"]].drop_duplicates(subset=["url", "phish"])
+
+
+def _is_hierarchical_web_url(url):
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname or ""
+        if parsed.scheme.lower() not in {"http", "https"} or not hostname:
+            return False
+        if URLClassifier(url).classify() != "hiérarchique":
+            return False
+        try:
+            ipaddress.ip_address(hostname)
+            return True
+        except ValueError:
+            return "." in hostname and not any(character.isspace() for character in hostname)
+    except ValueError:
+        return False
 
 
 def make_model():
@@ -144,15 +206,25 @@ def _is_trusted_clean_url(url):
 
 def train(progress_callback=None):
     df = load_dataset(progress_callback)
+    dataset_sources = df.attrs.get("sources", ["PhiUSIIL"])
     X, y = build_matrix(df["url"]), df["phish"]
     if progress_callback:
         progress_callback("training", f"Entraînement du modèle sur {len(df)} URLs.")
     model = make_model().fit(X, y)
-    joblib.dump({"model": model, "columns": list(X.columns), "feature_version": FEATURE_VERSION}, MODEL_PATH)
+    joblib.dump({
+        "model": model,
+        "columns": list(X.columns),
+        "feature_version": FEATURE_VERSION,
+        "dataset_version": DATASET_VERSION,
+        "dataset_sources": dataset_sources,
+    }, MODEL_PATH)
     if progress_callback:
-        progress_callback("ready", f"Modèle entraîné et enregistré dans {MODEL_PATH.name}.")
+        progress_callback(
+            "ready",
+            f"Modèle entraîné avec {', '.join(dataset_sources)} et enregistré dans {MODEL_PATH.name}.",
+        )
     else:
-        print(f"Modèle entraîné sur {len(df)} URLs -> {MODEL_PATH.name}")
+        print(f"Modèle entraîné sur {len(df)} URLs ({', '.join(dataset_sources)}) -> {MODEL_PATH.name}")
 
 
 _BUNDLE = None
@@ -166,7 +238,8 @@ def phishing_percent(url):
         _BUNDLE = joblib.load(MODEL_PATH)
     features = extract(url)
     if (set(_BUNDLE["columns"]) != set(features)
-            or _BUNDLE.get("feature_version") != FEATURE_VERSION):
+            or _BUNDLE.get("feature_version") != FEATURE_VERSION
+            or _BUNDLE.get("dataset_version") != DATASET_VERSION):
         train()
         _BUNDLE = joblib.load(MODEL_PATH)
     X = pd.DataFrame([features])[_BUNDLE["columns"]]

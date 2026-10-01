@@ -3,4 +3,6 @@
 ML/phiusiil.csv
 ML/phiusiil_dataset.zip
 ML/phishing_model.joblib
+ML/datasets/*.csv
+ML/datasets/*.zip
 __pycache__
