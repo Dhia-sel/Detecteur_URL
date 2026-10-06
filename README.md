@@ -68,7 +68,7 @@ Projet-Detecteur-Url/
 1. Cloner le dépôt :
 
 ```bash
-git clone https://github.com/<votre-utilisateur>/Projet-Detecteur-Url.git
+git clone https://github.com/Dhia-sel/Projet-Detecteur-Url.git
 cd Projet-Detecteur-Url
 ```
 
