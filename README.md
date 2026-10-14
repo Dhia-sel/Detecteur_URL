@@ -1,120 +1,97 @@
-# Détecteur d’URL – Analyse de phishing
+# 🛡️ UrlShield
 
-Projet Python pour analyser et classer des URLs suspectes à l’aide d’une combinaison d’analyses heuristiques, d’extraction de features, et d’un modèle de machine learning.
+**Détecteur de phishing par analyse d'URL : des règles explicables + un modèle de machine learning, le tout exposé via une API et une interface web.**
 
-Le système vise à détecter les liens potentiellement malveillants, à expliquer le verdict et à exposer les résultats via une API REST.
 
-## Fonctionnalités
 
-- Normalisation et classification des URLs
-- Analyse de structure et de composants de l’URL
-- Règles heuristiques pour repérer les signaux de phishing
-- Modèle ML basé sur des features d’URL
-- API FastAPI pour effectuer des scans
-- Interface web légère en HTML/JavaScript
-- Rapport d’explication et de score de risque
+UrlShield prend une URL, la classe selon sa **structure**, applique les **règles d'analyse** propres à ce type, calcule un **score ML** (probabilité de phishing en %), puis renvoie un **rapport structuré** : score, verdict et explications lisibles.
 
-## Stack technique
+**Sommaire** : [Fonctionnement](#fonctionnement) · [Types d'URL](#types-durl-analysés) · [Installation](#installation) · [API](#api) · [Modèle ML](#modèle-ml) · [Tests](#tests) · [Limites](#limites-connues) · [Structure](#structure-du-projet)
 
-- Python
-- FastAPI
-- scikit-learn
-- pandas / numpy
-- joblib
-- HTML + JavaScript
+---
 
-## Structure du projet
+## Fonctionnement
 
-```text
-Projet-Detecteur-Url/
-├── API/
-│   ├── routes/
-│   ├── schema/
-│   └── server.py
-├── App/
-│   ├── Analysis/
-│   ├── Core/
-│   ├── Explaining/
-│   ├── MachineLearning/
-│   ├── Parsers/
-│   ├── Utils/
-│   └── main.py
-├── Docs/
-│   └── architecture.md
-├── Frontend/
-│   ├── css/
-│   ├── js/
-│   └── index.html
-├── ML/
-│   ├── datasets/
-│   ├── download_training_datasets.py
-│   ├── phishing_model.py
-│   ├── phishing_model.joblib
-│   └── ...
-├── Tests/
-├── requirements.txt
-├── README.md
-└── ...
+Chaque URL passe par le même pipeline :
+
+```mermaid
+flowchart LR
+    A[URL brute] --> B[Normalisation]
+    B --> C[Classification du type]
+    C --> D[Règles d'analyse<br/>du type détecté]
+    B --> E[Features + modèle ML]
+    D --> F[Formatage du rapport]
+    E --> F
+    F --> G[Score · verdict · explications]
 ```
 
-## Prérequis
+*(schéma simplifié)*
 
-- Python 3.10+
-- pip
-- Accès internet pour télécharger les datasets optionnels du modèle ML
+| Étape | Rôle | Code |
+|---|---|---|
+| Normalisation | Nettoie et prépare l'URL | `App/Core/normalizer.py` |
+| Classification | Détermine le type structurel de l'URL | `App/Core/classifier.py` |
+| Analyse par règles | Détecte les signaux de fraude (domaine, sous-domaines, paramètres douteux, redirections, mots-clés suspects, longueur...) | `App/Analysis/` |
+| Score ML | Estime la probabilité de phishing à partir de features extraites de l'URL | `ML/phishing_model.py` |
+| Rapport | Assemble score, verdict et messages explicatifs | `App/Explaining/` |
+
+L'intérêt de combiner les deux approches : les règles disent **pourquoi** une URL est suspecte, le modèle ML capte des combinaisons de signaux que les règles seules ne voient pas.
+
+## Types d'URL analysés
+
+Les règles dépendent de la forme de l'URL. Chaque type a son propre analyseur et ses propres tests :
+
+| Type | Analyseur | Tests |
+|---|---|---|
+| Hiérarchique | `App/Analysis/hierarchical/` | `Tests/hierarchical_test.py` |
+| Embedded | `App/Analysis/embedded/` | `Tests/embedded_test.py` |
+| Nested | `App/Analysis/nested/` | `Tests/nested_test.py` |
+| Opaque | `App/Analysis/opac/` | `Tests/opac_test.py` |
+
+Les règles communes à tous les types sont dans `App/Analysis/rules.py`.
 
 ## Installation
 
-1. Cloner le dépôt :
+**Prérequis** : Python 3.10+, pip, et une connexion internet au premier lancement (téléchargement des datasets d'entraînement).
 
 ```bash
 git clone https://github.com/Dhia-sel/Projet-Detecteur-Url.git
 cd Projet-Detecteur-Url
-```
 
-2. Créer un environnement virtuel :
-
-```bash
 python -m venv .venv
-```
+source .venv/bin/activate          # Linux / macOS
+# .\.venv\Scripts\Activate.ps1     # Windows PowerShell
 
-3. Activer l’environnement :
-
-Sous Windows (PowerShell) :
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Sous Linux/macOS :
-
-```bash
-source .venv/bin/activate
-```
-
-4. Installer les dépendances :
-
-```bash
 pip install -r requirements.txt
 ```
 
-## Lancement de l’API
-
-Depuis la racine du projet :
+### Démarrage rapide
 
 ```bash
+# 1. (recommandé) préparer les datasets et le modèle avant le premier scan
+python ML/download_training_datasets.py
+
+# 2. lancer l'API
 uvicorn API.server:app --host 0.0.0.0 --port 8000 --reload
+
+# 3. lancer l'interface web (dans un autre terminal)
+python -m http.server 8080 --directory Frontend
 ```
 
-Ensuite, la documentation Swagger est disponible à :
+- API : http://localhost:8000
+- Documentation Swagger : http://localhost:8000/docs
+- Interface web : http://localhost:8080
 
-```text
-http://localhost:8000/docs
-```
+> Si `ML/phishing_model.joblib` est absent, le modèle est entraîné automatiquement au premier scan, ce qui rend cette première requête plus longue.
 
-## Exemple d’appel API
+## API
 
-### Scan d’une URL
+| Méthode | Route | Description |
+|---|---|---|
+| `POST` | `/api/scan` | Analyse complète d'une URL : type, règles, score ML, verdict |
+| `POST` | `/api/ml/score` | Score du modèle ML seul pour une URL |
+
+### Exemple
 
 ```bash
 curl -X POST "http://localhost:8000/api/scan" \
@@ -122,56 +99,86 @@ curl -X POST "http://localhost:8000/api/scan" \
   -d '{"url":"https://example.com/login"}'
 ```
 
-La réponse contient notamment :
+Réponse (abrégée) :
 
-- l’URL analysée
-- le type de URL
-- le rapport d’analyse
-- le résultat ML
-- le score de risque et la conclusion
+```json
+{
+  "url": "https://example.com/login",
+  "ml": {
+    "status": "ready",
+    "score": 64.2,
+    "verdict": "suspicious"
+  },
+  "url_type": "hierarchical",
+  "report": {
+    "data": []
+  }
+}
+```
+
+La réponse contient l'URL analysée, son type, le rapport des règles, le score ML (en %), le verdict et les informations de diagnostic.
 
 ## Modèle ML
 
-Le modèle est géré dans le dossier `ML/`.
+- **Algorithme** : `HistGradientBoostingClassifier` (scikit-learn).
+- **Entrée** : des features calculées à partir de la chaîne de l'URL (longueur, caractères spéciaux, sous-domaines, entropie, mots-clés suspects...).
+- **Sortie** : un pourcentage de probabilité de phishing.
+- **Données** : [PhiUSIIL Phishing URL Dataset](https://archive.ics.uci.edu/dataset/967/phiusiil+phishing+url+dataset) (UCI) et les jeux récupérés par `ML/download_training_datasets.py`.
+- **Fichiers** : modèle sauvegardé dans `ML/phishing_model.joblib`, données dans `ML/datasets/` et `ML/phiusiil.csv`.
 
-Si le modèle n’existe pas encore, le système peut le générer automatiquement lors du premier scan. Pour précharger les datasets de formation :
-
-```bash
-python ML/download_training_datasets.py
-```
-
-Puis vous pouvez lancer l’entraînement ou laisser l’API le faire automatiquement lors d’un premier scan.
-
-## Interface web
-
-Le front simple est présent dans le dossier `Frontend/`.
-
-Vous pouvez le lancer localement avec :
-
-```bash
-python -m http.server 8080 --directory Frontend
-```
-
-Puis ouvrir :
-
-```text
-http://localhost:8080/
-```
+> ⚠️ Le fichier `.joblib` doit être chargé avec la même version de scikit-learn que celle utilisée pour l'entraînement. Fixe la version dans `requirements.txt`.
 
 ## Tests
-
-Pour exécuter les tests du projet :
 
 ```bash
 pytest
 ```
 
-## Notes
+Les tests couvrent chaque famille d'analyseurs (`Tests/hierarchical_test.py`, `embedded_test.py`, `nested_test.py`, `opac_test.py`).
 
-- Le projet combine analyse logique et apprentissage automatique.
-- L’API est le point d’entrée principal pour les intégrations.
-- Les fichiers d’architecture et de documentation dans `Docs/` permettent de comprendre les composants analytiques.
+## Limites connues
 
-## Licence
+UrlShield est une **aide à la décision**, pas une garantie :
 
-Le dépôt n’indique pas de licence spécifique dans le code source actuel. Vérifiez bien la politique de distribution avant une mise en production ou un partage externe.
+- Le modèle ne regarde que **la chaîne de l'URL**. Un site légitime compromis ou un lien raccourci peut passer inaperçu.
+- Les jeux de données publics ont leurs biais : les performances mesurées sur un dataset sont généralement plus élevées que sur le web réel.
+- Le score ML est une probabilité estimée, non calibrée sur du trafic réel. Utilise-le comme un score de risque et croise-le avec le rapport des règles.
+- Un attaquant qui connaît les features peut chercher à les contourner ; le modèle doit être réentraîné régulièrement.
+
+## Structure du projet
+
+```text
+Projet-Detecteur-Url/
+├── API/
+│   ├── routes/scan.py              # routes /api/scan et /api/ml/score
+│   ├── schema/scan_schema.py       # schémas de requête / réponse
+│   └── server.py                   # application FastAPI
+├── App/
+│   ├── Analysis/                   # règles par type d'URL
+│   │   ├── embedded/
+│   │   ├── hierarchical/
+│   │   ├── nested/
+│   │   ├── opac/
+│   │   └── rules.py                # règles communes
+│   ├── Core/                       # normalizer, classifier, pipeline, constants
+│   ├── Explaining/                 # formatter et messages du rapport
+│   ├── MachineLearning/
+│   ├── Parsers/
+│   ├── Utils/
+│   └── main.py
+├── Docs/architecture.md            # documentation d'architecture
+├── Frontend/                       # interface web (html, css, js)
+├── ML/                             # modèle, datasets, entraînement
+├── Tests/                          # tests par type d'URL
+├── requirements.txt
+└── README.md
+```
+
+Pour plus de détails sur la conception, voir [`Docs/architecture.md`](Docs/architecture.md).
+
+## Pistes d'amélioration
+
+- Allowlist des domaines très populaires pour limiter les faux positifs.
+- Croisement avec des listes de phishing connues (PhishTank, OpenPhish).
+- Évaluation du modèle par domaine et sur des URLs récentes, avec les métriques publiées ici.
+- Conteneurisation (Docker) pour simplifier le déploiement.

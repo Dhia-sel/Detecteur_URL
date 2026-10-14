@@ -604,11 +604,12 @@ function renderReport(r, rawUrl) {
     ...(r.comments.lexical || []).map(t => ({ t, src: 'LEX' })),
     ...(r.comments.behaviour || []).map(t => ({ t, src: 'BEH' }))
   ];
-  const dangerKw = /dangerous|risky|phishing|obfusc|suspicious|base64|hidden|executable|IP address|injection/i;
+  const dangerKw = /dangerous|risky|phishing|obfusc|suspicious|base64|hidden|executable|IP address used as hostname|injection|insecure|cleartext|does not use https\/ssl encryption/i;
+  const benignAbsenceKw = /\bno suspicious (?:double slashes|keywords) detected\b/i;
   const okKw = /\b(no|does not|normal|reasonable|few|uses a domain name|uses a public IP address|uses standard web ports|uses a legitimate top-level domain|uses https\/ssl)\b/i;
   const cl = document.getElementById('cmtList');
   cl.innerHTML = allCmts.map((c, i) => {
-    const type = okKw.test(c.t) ? 'ok' : dangerKw.test(c.t) ? 'danger' : 'warn';
+    const type = benignAbsenceKw.test(c.t) ? 'ok' : dangerKw.test(c.t) ? 'danger' : okKw.test(c.t) ? 'ok' : 'warn';
     const icon = type === 'ok' ? '✓' : type === 'danger' ? '⚠' : '→';
     return `<div class="cmt cmt-${type}" id="cmt${i}">
       <span class="cmt-icon">${icon}</span>${c.t}
